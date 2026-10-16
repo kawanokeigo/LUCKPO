@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+アプリケーション要件定義書：LUCKPO（ラクポ）
+1. アプリケーション概要
+1.1 サービス名
+LUCKPO（ラクポ）
+1.2 コンセプト
+日常で起きるちょっとした運の良し悪し（「ガチャで神引きした」「電車にギリギリ乗れた」「財布を落とした」など）を共有し合う、確率共有SNSアプリ。
+1.3 ターゲット層
+年齢層: 若年層（10代〜20代）
+属性: ソーシャルゲームやトレーディングカードゲームを頻繁にプレイする層。
+1.4 デザインコンセプト
+基調カラー: 幸運をイメージさせる「黄色」をメインカラーとしつつ、不運な投稿には対比となる「紫色」を動的に適用。
+トーン＆マナー: 若年層に親しみやすく、かつ情報の視認性が高いスタイリッシュで洗練されたUI/UX。
+1.5 プラットフォーム & 認証
+対象機器: スマートフォン（iOS / Android 対応）
+ログイン方式: ログイン with Google（Googleアカウントによる迅速かつ安全な認証）
+2. 主要機能要件
+2.1 投稿機能
+ユーザーが自身の幸運・不運な体験と、その発生確率を投稿できる機能。
+基本項目:
+本文テキスト
+画像添付
+幸運・不運の種別フラグ（「幸運な投稿」または「不幸な投稿」）
+確率表記の多様性:
+数値表記: 「0.5%」などの具体的なパーセンテージ。
+定性・定型表記: 正確な確率が分からないものの幸運・不幸だった事象に対し、「超低確率」「高確率」などの文字による表記。
+確率計算補助機能（確率入力アシスト）:
+直接入力: パーセンテージをそのまま入力。
+連続試行: 「$p\%$ が $n$ 回連続で当たった / 外れた」の計算。
+二項分布（回数指定）: 「$p\%$ が $n$ 回中 $m$ 回当たった / 外れた」の計算。
+複合確率: 「$p\%$ と $q\%$ が重なった」など、複数事象の同時発生に対応。
+文字選択: プリセットからの選択。
+2.2 タイムライン機能
+全ユーザーの投稿を閲覧し、リアクションを行える機能。
+動的デザイン:
+「幸運な投稿」は、温かみや明るさを感じる黄色みがかったデザインカード。
+「不幸な投稿」は、少し切なさやミステリアスさを感じる紫みがかったデザインカード。
+リアクション機能:
+「いいね」ボタンによる共感・賞賛・慰めの意思表示。
+3. おまけ機能要件
+3.1 ガチャ機能
+「投稿するネタが思いつかない」というユーザーをサポートするための機能。
+デザイン・演出:
+妖怪ウォッチのガチャ（カプセルが出てくる感じとか）をイメージ。
+履歴の保存なし: 引いたガチャの結果はアプリ内に永続保存せず、その場のエンタメとして消費。
+シームレスな投稿連携:
+ガチャを引いた結果画面に「この内容で投稿する」ボタンを配置。
+ボタンを押すと、ガチャで引いた内容が自動で投稿入力欄に反映（プリセット）された状態で、スムーズに投稿画面へ遷移。
