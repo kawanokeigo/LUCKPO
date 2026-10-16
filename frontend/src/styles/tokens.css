@@ -1,0 +1,25 @@
+:root {
+  color-scheme: light;
+
+  --color-icon-nomal: #e9ba00;
+  --color-icon-light: #ffe100;
+/* post */
+  --color-luck-post: #fffcef;
+  --color-unluck-post: #fdefff;
+  --color-luck-post-text: #f09f4d;
+  --color-unluck-post-text: #60a0ea;
+
+  --color-yellow-line: #ffea94;
+  --color-yellow-bold-line: #e9ba00;
+
+  --color-background: #ffffff;
+  --color-white: #ffffff;
+  --color-black: #4b4b4b;
+  --color-gray:#d9d9d9;
+
+  --color-avatar-background: #ffefb8;
+  --color-avatar-icon: #826000;
+
+  --header-height: 72px;
+  --page-gutter: 8px;
+}
