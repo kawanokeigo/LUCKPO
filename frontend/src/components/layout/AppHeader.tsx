@@ -3,12 +3,16 @@ import ProfileAvatar from "../profile/ProfileAvatar";
 
 type AppHeaderProps = {
   showBottomLine?: boolean;
+  showProfileIcon?: boolean;
 };
 
-export default function AppHeader({ showBottomLine = true }: AppHeaderProps) {
+export default function AppHeader({
+  showBottomLine = true,
+  showProfileIcon = true,
+}: AppHeaderProps) {
   return (
     <header className={`app-header${showBottomLine ? " app-header--with-line" : ""}`}>
-      <ProfileAvatar />
+      {showProfileIcon && <ProfileAvatar />}
       <BrandLogo />
     </header>
   );
