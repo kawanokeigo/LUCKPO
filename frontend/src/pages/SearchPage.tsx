@@ -4,18 +4,10 @@ import BottomNavigation, { type NavigationItem } from "../components/layout/Bott
 import CreatePostButton from "../components/navigation/CreatePostButton";
 import TimelineFeed from "../features/timeline/components/TimelineFeed";
 import { mockPosts } from "../features/timeline/data/mockPosts";
+import { mockUsers } from "../features/profile/data/mockUsers";
+import type { ProfileUser } from "../features/profile/types";
 
 type SearchTab = "topics" | "latest" | "users";
-
-const mockUsers = [
-  { name: "ユーザー", handle: "@USER", bio: "プロフィール文がここに入ります", following: false },
-  { name: "ユーザー", handle: "@USER2", bio: "ゲームとカードが好きです", following: true },
-  { name: "ユーザー", handle: "@USER3", bio: "今日の運勢を記録しています", following: true },
-  { name: "ユーザー", handle: "@USER4", bio: "レアを引きたい！", following: true },
-  { name: "ユーザー", handle: "@USER5", bio: "幸運も不運も共有中", following: false },
-  { name: "ユーザー", handle: "@USER6", bio: "よろしくお願いします", following: false },
-  { name: "ユーザー", handle: "@USER7", bio: "毎日ガチャを引いてます", following: true },
-];
 
 const tabs: { id: SearchTab; label: string }[] = [
   { id: "topics", label: "話題" },
@@ -26,9 +18,22 @@ const tabs: { id: SearchTab; label: string }[] = [
 type SearchPageProps = {
   activeItem: NavigationItem;
   onNavigationChange: (item: NavigationItem) => void;
+  hasUnreadNotifications: boolean;
+  showUnluckPosts: boolean;
+  onCreatePost: () => void;
+  onOpenProfile: (user: ProfileUser) => void;
+  onOpenMyProfile: () => void;
 };
 
-export default function SearchPage({ activeItem, onNavigationChange }: SearchPageProps) {
+export default function SearchPage({
+  activeItem,
+  onNavigationChange,
+  hasUnreadNotifications,
+  showUnluckPosts,
+  onCreatePost,
+  onOpenProfile,
+  onOpenMyProfile,
+}: SearchPageProps) {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<SearchTab>("topics");
   const [followingUsers, setFollowingUsers] = useState(
@@ -38,6 +43,7 @@ export default function SearchPage({ activeItem, onNavigationChange }: SearchPag
 
   const matchingPosts = useMemo(() => {
     const filtered = mockPosts.filter((post) =>
+      (showUnluckPosts || post.kind !== "unluck") &&
       `${post.body} ${post.authorName} ${post.handle} ${post.probability}`
         .toLocaleLowerCase()
         .includes(normalizedQuery),
@@ -48,7 +54,7 @@ export default function SearchPage({ activeItem, onNavigationChange }: SearchPag
     }
 
     return [...filtered].sort((first, second) => second.likes - first.likes);
-  }, [activeTab, normalizedQuery]);
+  }, [activeTab, normalizedQuery, showUnluckPosts]);
 
   const matchingUsers = useMemo(() => {
     return mockUsers.filter((user) =>
@@ -63,7 +69,7 @@ export default function SearchPage({ activeItem, onNavigationChange }: SearchPag
   return (
     <div className="app-shell">
       <div className="search-top">
-        <AppHeader showBottomLine={false} />
+        <AppHeader showBottomLine={false} onMyProfileClick={onOpenMyProfile} />
         <form className="search-form" role="search" onSubmit={(event) => event.preventDefault()}>
           <span className="search-form__icon" aria-hidden="true" />
           <input
@@ -95,12 +101,22 @@ export default function SearchPage({ activeItem, onNavigationChange }: SearchPag
           <section className="search-user-list" aria-label="ユーザー">
             {matchingUsers.map((user) => (
               <article className="search-user" key={user.handle}>
-                <div className="search-user__avatar" aria-hidden="true" />
+                <button
+                  className="search-user__avatar search-user__avatar-button"
+                  type="button"
+                  aria-label={`${user.name}のプロフィールを開く`}
+                  onClick={() => onOpenProfile(user)}
+                />
                 <div className="search-user__identity">
-                  <div className="search-user__author-line">
+                  <button
+                    className="search-user__profile-open"
+                    type="button"
+                    onClick={() => onOpenProfile(user)}
+                    aria-label={`${user.name} ${user.handle}のプロフィールを開く`}
+                  >
                     <strong>{user.name}</strong>
                     <span>{user.handle}</span>
-                  </div>
+                  </button>
                   <p>{user.bio}</p>
                 </div>
                 <button
@@ -116,14 +132,24 @@ export default function SearchPage({ activeItem, onNavigationChange }: SearchPag
             {matchingUsers.length === 0 && <p className="search-empty">ユーザーが見つかりません</p>}
           </section>
         ) : matchingPosts.length > 0 ? (
-          <TimelineFeed posts={matchingPosts} />
+          <TimelineFeed
+            posts={matchingPosts}
+            onOpenProfile={(handle) => {
+              const user = mockUsers.find((candidate) => candidate.handle === handle);
+              if (user) onOpenProfile(user);
+            }}
+          />
         ) : (
           <p className="search-empty">投稿が見つかりません</p>
         )}
       </main>
 
-      <CreatePostButton />
-      <BottomNavigation activeItem={activeItem} onSelect={onNavigationChange} />
+      <CreatePostButton onClick={onCreatePost} />
+      <BottomNavigation
+        activeItem={activeItem}
+        onSelect={onNavigationChange}
+        hasUnreadNotifications={hasUnreadNotifications}
+      />
     </div>
   );
 }

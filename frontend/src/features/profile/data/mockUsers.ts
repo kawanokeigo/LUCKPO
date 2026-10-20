@@ -1,0 +1,60 @@
+import type { ProfileUser } from "../types";
+
+export const mockUsers: ProfileUser[] = [
+  {
+    name: "ユーザー",
+    handle: "@USER",
+    bio: "ここにプロフィールが入ります\nここに2行目のプロフィールが入ります",
+    following: false,
+    followingCount: 10,
+    followerCount: 11,
+  },
+  {
+    name: "ユーザー",
+    handle: "@USER2",
+    bio: "ゲームとカードが好きです",
+    following: true,
+    followingCount: 24,
+    followerCount: 38,
+  },
+  {
+    name: "ユーザー",
+    handle: "@USER3",
+    bio: "今日の運勢を記録しています",
+    following: true,
+    followingCount: 8,
+    followerCount: 16,
+  },
+  {
+    name: "ユーザー",
+    handle: "@USER4",
+    bio: "レアを引きたい！",
+    following: true,
+    followingCount: 31,
+    followerCount: 42,
+  },
+  {
+    name: "ユーザー",
+    handle: "@USER5",
+    bio: "幸運も不運も共有中",
+    following: false,
+    followingCount: 12,
+    followerCount: 19,
+  },
+  {
+    name: "ユーザー",
+    handle: "@USER6",
+    bio: "よろしくお願いします",
+    following: false,
+    followingCount: 6,
+    followerCount: 9,
+  },
+  {
+    name: "ユーザー",
+    handle: "@USER7",
+    bio: "毎日ガチャを引いてます",
+    following: true,
+    followingCount: 43,
+    followerCount: 57,
+  },
+];

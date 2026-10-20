@@ -3,6 +3,7 @@
 
   --color-icon-nomal: #e9ba00;
   --color-icon-light: #ffe100;
+  --color-background: #fff9e0;
 /* post */
   --color-luck-post: #fffcef;
   --color-unluck-post: #fdefff;
@@ -12,15 +13,22 @@
   --color-yellow-line: #ffea94;
   --color-yellow-bold-line: #e9ba00;
 
-  --color-background: #ffffff;
   --color-white: #ffffff;
   --color-black: #4b4b4b;
   --color-gray:#d9d9d9;
 
   --color-avatar-background: #ffefb8;
   --color-avatar-icon: #826000;
+  --color-settings-danger: #f26b6b;
+  --color-settings-toggle-on: #a17bac;
+  --color-settings-toggle-off: #9e9e9e;
 
   --header-height: 72px;
   --bottom-navigation-height: 68px;
   --page-gutter: 8px;
+
+  --color-badge: #FF9500;
+  --color-orange: #FF7615;
+  --color-luck-button: #Fac902;
+  --color-post-bottun: #Fac902;
 }

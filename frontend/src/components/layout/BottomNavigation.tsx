@@ -11,11 +11,13 @@ export type NavigationItem = (typeof items)[number]["id"];
 type BottomNavigationProps = {
   activeItem: NavigationItem;
   onSelect: (item: NavigationItem) => void;
+  hasUnreadNotifications: boolean;
 };
 
 export default function BottomNavigation({
   activeItem,
   onSelect,
+  hasUnreadNotifications,
 }: BottomNavigationProps) {
   return (
     <nav className="bottom-navigation" aria-label="メインナビゲーション">
@@ -24,7 +26,9 @@ export default function BottomNavigation({
           key={id}
           type="button"
           className="bottom-navigation__button"
-          aria-label={label}
+          aria-label={
+            id === "notifications" && hasUnreadNotifications ? "通知（未読あり）" : label
+          }
           aria-current={activeItem === id ? "page" : undefined}
           onClick={() => onSelect(id)}
         >
@@ -33,6 +37,9 @@ export default function BottomNavigation({
             style={{ maskImage: `url("/images/${icon}")` }}
             aria-hidden="true"
           />
+          {id === "notifications" && hasUnreadNotifications && (
+            <span className="bottom-navigation__badge" aria-hidden="true" />
+          )}
         </button>
       ))}
     </nav>

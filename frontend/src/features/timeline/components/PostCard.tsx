@@ -3,13 +3,14 @@ import type { TimelinePost } from "../types";
 
 type PostCardProps = {
   post: TimelinePost;
+  onOpenProfile?: (handle: string) => void;
 };
 
 function formatLikes(count: number) {
   return count >= 1_000 ? `${Math.floor(count / 1_000)}k` : String(count);
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, onOpenProfile }: PostCardProps) {
   const [liked, setLiked] = useState(post.liked ?? false);
   const [likeCount, setLikeCount] = useState(post.likes);
   const kindLabel = post.kind === "luck" ? "幸運" : "不幸";
@@ -32,12 +33,33 @@ export default function PostCard({ post }: PostCardProps) {
   return (
     <article className={`post-card post-card--${post.kind}`}>
       <div className="post-card__top">
-        <div className="post-card__avatar" role="img" aria-label={`${post.authorName}のアイコン`} />
+        {onOpenProfile ? (
+          <button
+            className="post-card__avatar post-card__avatar-button"
+            type="button"
+            aria-label={`${post.authorName}のプロフィールを開く`}
+            onClick={() => onOpenProfile(post.handle)}
+          />
+        ) : (
+          <div className="post-card__avatar" role="img" aria-label={`${post.authorName}のアイコン`} />
+        )}
         <div className="post-card__identity">
-          <div className="post-card__author-line">
-            <span className="post-card__author">{post.authorName}</span>
-            <span className="post-card__handle">{post.handle}</span>
-          </div>
+          {onOpenProfile ? (
+            <button
+              className="post-card__author-line post-card__profile-link"
+              type="button"
+              onClick={() => onOpenProfile(post.handle)}
+              aria-label={`${post.authorName} ${post.handle}のプロフィールを開く`}
+            >
+              <span className="post-card__author">{post.authorName}</span>
+              <span className="post-card__handle">{post.handle}</span>
+            </button>
+          ) : (
+            <div className="post-card__author-line">
+              <span className="post-card__author">{post.authorName}</span>
+              <span className="post-card__handle">{post.handle}</span>
+            </div>
+          )}
           <p className="post-card__probability">
             <span>確率</span> {post.probability}
           </p>
