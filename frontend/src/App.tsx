@@ -8,8 +8,14 @@ import PostCreatePage from "./pages/PostCreatePage";
 import UserProfilePage from "./pages/UserProfilePage";
 import MyProfilePage from "./pages/MyProfilePage";
 import GachaPage from "./pages/GachaPage";
+import SignInPage from "./pages/SignInPage";
 import type { ProfileUser } from "./features/profile/types";
 import { mockUsers } from "./features/profile/data/mockUsers";
+import type { PostCreatePrefill } from "./features/post-create/types";
+import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import { createPost, fetchPosts, setPostLike } from "./features/timeline/data/postsApi";
+import type { TimelinePost } from "./features/timeline/types";
+import type { PostDraft } from "./features/post-create/types";
 
 function getUserForPath(pathname: string): ProfileUser | null {
   const match = pathname.match(/^\/users\/([^/]+)\/?$/);
@@ -59,16 +65,55 @@ export default function App() {
   const [showUnluckPosts, setShowUnluckPosts] = useState(true);
   const [showNotificationBadge, setShowNotificationBadge] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(initialPath === "/posts/new");
+  const [postPrefill, setPostPrefill] = useState<PostCreatePrefill | null>(null);
   const [profileUser, setProfileUser] = useState<ProfileUser | null>(() => getUserForPath(initialPath));
   const [isMyProfileOpen, setIsMyProfileOpen] = useState(initialPath === "/profile");
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [posts, setPosts] = useState<TimelinePost[]>([]);
   const [scrollRestoreY, setScrollRestoreY] = useState<number | null>(null);
 
   useEffect(() => {
+    if (!supabase) {
+      setIsAuthReady(true);
+      window.history.replaceState({}, "", "/signin");
+      return;
+    }
+
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (error) setAuthError("サインイン状態を確認できませんでした。もう一度お試しください。");
+      setIsSignedIn(Boolean(data.session));
+      setIsAuthReady(true);
+      if (data.session) {
+        void fetchPosts(data.session.user.id).then(setPosts).catch(() => setAuthError("投稿を読み込めませんでした。"));
+      } else window.history.replaceState({}, "", "/signin");
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsSignedIn(Boolean(session));
+      setIsAuthReady(true);
+      if (session) {
+        void fetchPosts(session.user.id).then(setPosts).catch(() => setAuthError("投稿を読み込めませんでした。"));
+      } else {
+        setPosts([]);
+        window.history.replaceState({}, "", "/signin");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     function handlePopState(event: PopStateEvent) {
+      if (!isSignedIn) {
+        window.history.replaceState({}, "", "/signin");
+        return;
+      }
       const pathname = window.location.pathname;
       setProfileUser(getUserForPath(pathname));
       setIsMyProfileOpen(pathname === "/profile");
       setIsCreatingPost(pathname === "/posts/new");
+      if (pathname !== "/posts/new") setPostPrefill(null);
       const pathItem = getNavigationForPath(pathname);
       if (pathItem) setActiveItem(pathItem);
       else if (event.state?.activeItem) setActiveItem(event.state.activeItem as NavigationItem);
@@ -77,7 +122,7 @@ export default function App() {
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  }, [isSignedIn]);
 
   useLayoutEffect(() => {
     if (scrollRestoreY === null) return;
@@ -86,6 +131,7 @@ export default function App() {
   }, [activeItem, isCreatingPost, isMyProfileOpen, profileUser, scrollRestoreY]);
 
   function handleNavigationChange(item: NavigationItem) {
+    if (!isSignedIn) return;
     const currentPath = window.location.pathname;
     window.history.replaceState(
       { ...window.history.state, activeItem, scrollY: window.scrollY },
@@ -111,13 +157,14 @@ export default function App() {
     window.scrollTo(0, 0);
   }
 
-  function openPostComposer() {
+  function openPostComposer(prefill?: PostCreatePrefill) {
     window.history.replaceState(
       { ...window.history.state, activeItem, scrollY: window.scrollY },
       "",
       window.location.pathname,
     );
     window.history.pushState({ activeItem, composer: true, scrollY: 0 }, "", "/posts/new");
+    setPostPrefill(prefill ?? null);
     setProfileUser(null);
     setIsMyProfileOpen(false);
     setIsCreatingPost(true);
@@ -149,6 +196,7 @@ export default function App() {
   }
 
   function closePostComposer() {
+    setPostPrefill(null);
     if (window.history.state?.composer) {
       window.history.back();
     } else {
@@ -158,14 +206,57 @@ export default function App() {
     }
   }
 
-  const basePage = isCreatingPost ? (
+  async function handleSignIn() {
+    if (!supabase) {
+      setAuthError("Supabaseの接続設定が必要です。frontend/.env.local を設定してください。");
+      return;
+    }
+    setAuthError("");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) setAuthError("Googleでサインインできませんでした。設定を確認して再度お試しください。");
+  }
+
+  async function handlePublishPost(draft: PostDraft) {
+    const post = await createPost(draft);
+    setPosts((currentPosts) => [post, ...currentPosts]);
+    closePostComposer();
+  }
+
+  async function handleLogout() {
+    if (supabase) {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        setAuthError("ログアウトできませんでした。もう一度お試しください。");
+        return;
+      }
+    }
+    setIsSignedIn(false);
+    setIsCreatingPost(false);
+    setProfileUser(null);
+    setIsMyProfileOpen(false);
+    setPostPrefill(null);
+    window.history.pushState({}, "", "/signin");
+    window.scrollTo(0, 0);
+  }
+
+  const basePage = !isAuthReady || !isSignedIn ? (
+      <SignInPage
+        onSignIn={() => void handleSignIn()}
+        disabled={!isSupabaseConfigured}
+        error={authError || (!isSupabaseConfigured ? "Supabaseの接続設定が必要です。frontend/.env.local を設定してください。" : "")}
+      />
+    ) : isCreatingPost ? (
       <PostCreatePage
         activeItem={activeItem}
         onNavigationChange={handleNavigationChange}
         hasUnreadNotifications={hasUnreadNotifications && showNotificationBadge}
         onCancel={closePostComposer}
-        onPublish={closePostComposer}
+        onPublish={handlePublishPost}
         onOpenMyProfile={openMyProfile}
+        prefill={postPrefill ?? undefined}
       />
     ) : activeItem === "search" ? (
       <SearchPage
@@ -176,6 +267,8 @@ export default function App() {
         onCreatePost={openPostComposer}
         onOpenProfile={openUserProfile}
         onOpenMyProfile={openMyProfile}
+        posts={posts}
+        onLikeChange={setPostLike}
       />
     ) : activeItem === "notifications" ? (
       <NotificationsPage
@@ -191,6 +284,7 @@ export default function App() {
         onNavigationChange={handleNavigationChange}
         hasUnreadNotifications={hasUnreadNotifications && showNotificationBadge}
         onOpenMyProfile={openMyProfile}
+        onCreatePost={openPostComposer}
       />
     ) : activeItem === "settings" ? (
       <SettingsPage
@@ -203,6 +297,7 @@ export default function App() {
         hasUnreadNotifications={hasUnreadNotifications && showNotificationBadge}
         onCreatePost={openPostComposer}
         onOpenMyProfile={openMyProfile}
+        onLogout={handleLogout}
       />
     ) : (
     <HomePage
@@ -213,6 +308,8 @@ export default function App() {
       onCreatePost={openPostComposer}
       onOpenProfile={openUserProfile}
       onOpenMyProfile={openMyProfile}
+      allPosts={posts}
+      onLikeChange={setPostLike}
     />
   );
 

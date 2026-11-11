@@ -3,7 +3,7 @@ import AppHeader from "../components/layout/AppHeader";
 import BottomNavigation, { type NavigationItem } from "../components/layout/BottomNavigation";
 import CreatePostButton from "../components/navigation/CreatePostButton";
 import TimelineFeed from "../features/timeline/components/TimelineFeed";
-import { mockPosts } from "../features/timeline/data/mockPosts";
+import type { TimelinePost } from "../features/timeline/types";
 import { mockUsers } from "../features/profile/data/mockUsers";
 import type { ProfileUser } from "../features/profile/types";
 
@@ -23,6 +23,8 @@ type SearchPageProps = {
   onCreatePost: () => void;
   onOpenProfile: (user: ProfileUser) => void;
   onOpenMyProfile: () => void;
+  posts: TimelinePost[];
+  onLikeChange: (postId: string, liked: boolean) => Promise<void>;
 };
 
 export default function SearchPage({
@@ -33,6 +35,8 @@ export default function SearchPage({
   onCreatePost,
   onOpenProfile,
   onOpenMyProfile,
+  posts,
+  onLikeChange,
 }: SearchPageProps) {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<SearchTab>("topics");
@@ -42,7 +46,7 @@ export default function SearchPage({
   const normalizedQuery = query.trim().toLocaleLowerCase();
 
   const matchingPosts = useMemo(() => {
-    const filtered = mockPosts.filter((post) =>
+    const filtered = posts.filter((post) =>
       (showUnluckPosts || post.kind !== "unluck") &&
       `${post.body} ${post.authorName} ${post.handle} ${post.probability}`
         .toLocaleLowerCase()
@@ -54,7 +58,7 @@ export default function SearchPage({
     }
 
     return [...filtered].sort((first, second) => second.likes - first.likes);
-  }, [activeTab, normalizedQuery, showUnluckPosts]);
+  }, [activeTab, normalizedQuery, showUnluckPosts, posts]);
 
   const matchingUsers = useMemo(() => {
     return mockUsers.filter((user) =>
@@ -134,6 +138,7 @@ export default function SearchPage({
         ) : matchingPosts.length > 0 ? (
           <TimelineFeed
             posts={matchingPosts}
+            onLikeChange={onLikeChange}
             onOpenProfile={(handle) => {
               const user = mockUsers.find((candidate) => candidate.handle === handle);
               if (user) onOpenProfile(user);

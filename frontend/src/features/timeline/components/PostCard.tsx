@@ -4,20 +4,28 @@ import type { TimelinePost } from "../types";
 type PostCardProps = {
   post: TimelinePost;
   onOpenProfile?: (handle: string) => void;
+  onLikeChange?: (postId: string, liked: boolean) => Promise<void>;
 };
 
 function formatLikes(count: number) {
   return count >= 1_000 ? `${Math.floor(count / 1_000)}k` : String(count);
 }
 
-export default function PostCard({ post, onOpenProfile }: PostCardProps) {
+export default function PostCard({ post, onOpenProfile, onLikeChange }: PostCardProps) {
   const [liked, setLiked] = useState(post.liked ?? false);
   const [likeCount, setLikeCount] = useState(post.likes);
   const kindLabel = post.kind === "luck" ? "幸運" : "不幸";
 
   function toggleLike() {
-    setLiked(!liked);
-    setLikeCount((count) => count + (liked ? -1 : 1));
+    const nextLiked = !liked;
+    setLiked(nextLiked);
+    setLikeCount((count) => count + (nextLiked ? 1 : -1));
+    if (onLikeChange) {
+      void onLikeChange(post.id, nextLiked).catch(() => {
+        setLiked(!nextLiked);
+        setLikeCount((count) => count + (nextLiked ? -1 : 1));
+      });
+    }
   }
 
   function sharePost() {

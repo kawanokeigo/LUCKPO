@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import AppHeader from "../components/layout/AppHeader";
 import BottomNavigation, { type NavigationItem } from "../components/layout/BottomNavigation";
 import CreatePostButton from "../components/navigation/CreatePostButton";
@@ -37,6 +37,8 @@ export default function MyProfilePage({
   const [profile, setProfile] = useState(initialProfile);
   const [draft, setDraft] = useState(initialProfile);
   const [isEditing, setIsEditing] = useState(false);
+  const [avatarImage, setAvatarImage] = useState("");
+  const [draftAvatarImage, setDraftAvatarImage] = useState("");
 
   const posts = mockPosts
     .filter((post) => showUnluckPosts || post.kind !== "unluck")
@@ -44,12 +46,26 @@ export default function MyProfilePage({
 
   function beginEditing() {
     setDraft(profile);
+    setDraftAvatarImage(avatarImage);
     setIsEditing(true);
+  }
+
+  function changeAvatar(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") setDraftAvatarImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+    event.target.value = "";
   }
 
   function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setProfile(draft);
+    setAvatarImage(draftAvatarImage);
     setIsEditing(false);
   }
 
@@ -59,7 +75,11 @@ export default function MyProfilePage({
         <AppHeader showBottomLine />
         <section className="user-profile-summary" aria-label="マイプロフィール">
           <div className="user-profile-summary__top">
-            <div className="user-profile-summary__avatar" aria-hidden="true" />
+            <div
+              className="user-profile-summary__avatar"
+              style={avatarImage ? { backgroundImage: `url("${avatarImage}")` } : undefined}
+              aria-hidden="true"
+            />
             <div className="user-profile-summary__identity">
               <h1>{profile.name}</h1>
               <span>{profile.handle}</span>
@@ -85,6 +105,22 @@ export default function MyProfilePage({
             </button>
           ) : (
             <form className="my-profile-editor" onSubmit={saveProfile}>
+              <div className="my-profile-avatar-edit">
+                <div
+                  className="my-profile-avatar-edit__preview"
+                  style={draftAvatarImage ? { backgroundImage: `url("${draftAvatarImage}")` } : undefined}
+                  aria-hidden="true"
+                />
+                <label className="my-profile-avatar-edit__picker">
+                  アイコンを変更
+                  <input
+                    className="visually-hidden"
+                    type="file"
+                    accept="image/*"
+                    onChange={changeAvatar}
+                  />
+                </label>
+              </div>
               <label>
                 ユーザー名
                 <input
@@ -113,7 +149,15 @@ export default function MyProfilePage({
                 />
               </label>
               <div className="my-profile-editor__actions">
-                <button type="button" onClick={() => setIsEditing(false)}>キャンセル</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraftAvatarImage(avatarImage);
+                    setIsEditing(false);
+                  }}
+                >
+                  キャンセル
+                </button>
                 <button type="submit" disabled={!draft.name.trim() || !draft.handle.trim()}>
                   保存
                 </button>

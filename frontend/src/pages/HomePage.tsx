@@ -5,7 +5,7 @@ import CreatePostButton from "../components/navigation/CreatePostButton";
 import type { NavigationItem } from "../components/layout/BottomNavigation";
 import FeedTabs, { type FeedTab } from "../features/timeline/components/FeedTabs";
 import TimelineFeed from "../features/timeline/components/TimelineFeed";
-import { mockPosts } from "../features/timeline/data/mockPosts";
+import type { TimelinePost } from "../features/timeline/types";
 import { mockUsers } from "../features/profile/data/mockUsers";
 import type { ProfileUser } from "../features/profile/types";
 
@@ -17,6 +17,8 @@ type HomePageProps = {
   onCreatePost: () => void;
   onOpenProfile: (user: ProfileUser) => void;
   onOpenMyProfile: () => void;
+  allPosts: TimelinePost[];
+  onLikeChange: (postId: string, liked: boolean) => Promise<void>;
 };
 
 export default function HomePage({
@@ -27,12 +29,14 @@ export default function HomePage({
   onCreatePost,
   onOpenProfile,
   onOpenMyProfile,
+  allPosts,
+  onLikeChange,
 }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<FeedTab>("recommended");
   const sortedPosts =
     activeTab === "new"
-      ? [...mockPosts].sort((first, second) => second.timestamp.localeCompare(first.timestamp))
-      : mockPosts;
+      ? [...allPosts].sort((first, second) => second.timestamp.localeCompare(first.timestamp))
+      : allPosts;
   const posts = showUnluckPosts ? sortedPosts : sortedPosts.filter((post) => post.kind !== "unluck");
 
   return (
@@ -44,6 +48,7 @@ export default function HomePage({
       <main className="home-content" aria-label="ホーム">
         <TimelineFeed
           posts={posts}
+          onLikeChange={onLikeChange}
           onOpenProfile={(handle) => {
             const user = mockUsers.find((candidate) => candidate.handle === handle);
             if (user) onOpenProfile(user);

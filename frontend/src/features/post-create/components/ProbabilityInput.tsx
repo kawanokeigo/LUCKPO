@@ -5,6 +5,7 @@ type Outcome = "hit" | "miss";
 
 type ProbabilityInputProps = {
   onProbabilityChange: (value: string) => void;
+  initialValue?: string;
 };
 
 const modes: { value: ProbabilityMode; label: string }[] = [
@@ -21,6 +22,10 @@ function parseNumber(value: string) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function isNumericProbability(value?: string) {
+  return Boolean(value && /^\d+(?:\.\d+)?%?$/.test(value.trim()));
+}
+
 function formatProbability(value: number) {
   const rounded = Number(value.toPrecision(8));
   return rounded.toLocaleString("en-US", { maximumFractionDigits: 8 });
@@ -35,14 +40,14 @@ function combination(n: number, r: number) {
   return result;
 }
 
-export default function ProbabilityInput({ onProbabilityChange }: ProbabilityInputProps) {
-  const [mode, setMode] = useState<ProbabilityMode>("direct");
-  const [probability, setProbability] = useState("20");
+export default function ProbabilityInput({ onProbabilityChange, initialValue }: ProbabilityInputProps) {
+  const [mode, setMode] = useState<ProbabilityMode>(initialValue && !isNumericProbability(initialValue) ? "preset" : "direct");
+  const [probability, setProbability] = useState(isNumericProbability(initialValue) ? initialValue!.replace(/%$/, "") : "20");
   const [secondProbability, setSecondProbability] = useState("20");
   const [trials, setTrials] = useState("10");
   const [occurrences, setOccurrences] = useState("1");
   const [outcome, setOutcome] = useState<Outcome>("hit");
-  const [preset, setPreset] = useState("低確率");
+  const [preset, setPreset] = useState(initialValue ?? "低確率");
 
   const p = parseNumber(probability);
   const q = parseNumber(secondProbability);

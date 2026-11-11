@@ -12,6 +12,7 @@ type SettingsPageProps = {
   hasUnreadNotifications: boolean;
   onCreatePost: () => void;
   onOpenMyProfile: () => void;
+  onLogout: () => void;
 };
 
 type SettingSwitchProps = {
@@ -47,6 +48,7 @@ export default function SettingsPage({
   hasUnreadNotifications,
   onCreatePost,
   onOpenMyProfile,
+  onLogout,
 }: SettingsPageProps) {
   return (
     <div className="app-shell">
@@ -59,7 +61,7 @@ export default function SettingsPage({
         <section className="settings-section settings-section--account">
           <h2>アカウント設定</h2>
           <div className="settings-section__actions">
-            <button className="settings-danger-button" type="button">ログアウト</button>
+            <button className="settings-danger-button" type="button" onClick={onLogout}>ログアウト</button>
             <button className="settings-danger-button" type="button">アカウント削除</button>
           </div>
         </section>
