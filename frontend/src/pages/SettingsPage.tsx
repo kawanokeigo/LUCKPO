@@ -13,6 +13,7 @@ type SettingsPageProps = {
   onCreatePost: () => void;
   onOpenMyProfile: () => void;
   onLogout: () => void;
+  avatarUrl: string | null;
 };
 
 type SettingSwitchProps = {
@@ -49,11 +50,12 @@ export default function SettingsPage({
   onCreatePost,
   onOpenMyProfile,
   onLogout,
+  avatarUrl,
 }: SettingsPageProps) {
   return (
     <div className="app-shell">
       <div className="settings-top">
-        <AppHeader showBottomLine={false} onMyProfileClick={onOpenMyProfile} />
+        <AppHeader showBottomLine={false} onMyProfileClick={onOpenMyProfile} avatarUrl={avatarUrl} />
         <h1 className="settings-title">設定</h1>
       </div>
 

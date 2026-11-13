@@ -3,8 +3,8 @@ import AppHeader from "../components/layout/AppHeader";
 import BottomNavigation, { type NavigationItem } from "../components/layout/BottomNavigation";
 import CreatePostButton from "../components/navigation/CreatePostButton";
 import TimelineFeed from "../features/timeline/components/TimelineFeed";
-import { mockPosts } from "../features/timeline/data/mockPosts";
 import type { ProfileUser } from "../features/profile/types";
+import type { TimelinePost } from "../features/timeline/types";
 
 type UserProfilePageProps = {
   user: ProfileUser;
@@ -15,6 +15,11 @@ type UserProfilePageProps = {
   onCreatePost: () => void;
   onBack: () => void;
   onOpenMyProfile: () => void;
+  posts: TimelinePost[];
+  onLikeChange: (postId: string, liked: boolean) => Promise<void>;
+  onToggleFollow: (userId: string, isFollowing: boolean) => Promise<void>;
+  currentUserId: string;
+  currentAvatarUrl: string | null;
 };
 
 export default function UserProfilePage({
@@ -26,26 +31,36 @@ export default function UserProfilePage({
   onCreatePost,
   onBack,
   onOpenMyProfile,
+  posts,
+  onLikeChange,
+  onToggleFollow,
+  currentUserId,
+  currentAvatarUrl,
 }: UserProfilePageProps) {
   const [isFollowing, setIsFollowing] = useState(user.following);
   const [followerCount, setFollowerCount] = useState(user.followerCount);
+  const [followError, setFollowError] = useState("");
+  const visiblePosts = posts.filter((post) => showUnluckPosts || post.kind !== "unluck");
 
-  const posts = mockPosts
-    .filter((post) => showUnluckPosts || post.kind !== "unluck")
-    .map((post) => ({ ...post, authorName: user.name, handle: user.handle }));
-
-  function toggleFollow() {
-    setIsFollowing((following) => !following);
-    setFollowerCount((count) => count + (isFollowing ? -1 : 1));
+  async function toggleFollow() {
+    if (!user.id || user.id === currentUserId) return;
+    try {
+      await onToggleFollow(user.id, isFollowing);
+      setIsFollowing((following) => !following);
+      setFollowerCount((count) => count + (isFollowing ? -1 : 1));
+      setFollowError("");
+    } catch {
+      setFollowError("フォロー状態を更新できませんでした。");
+    }
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell profile-page-shell">
       <div className="user-profile-top">
-        <AppHeader showBottomLine onMyProfileClick={onOpenMyProfile} />
+        <AppHeader showBottomLine onMyProfileClick={onOpenMyProfile} avatarUrl={currentAvatarUrl} />
         <section className="user-profile-summary" aria-label={`${user.name}のプロフィール`}>
           <div className="user-profile-summary__top">
-            <div className="user-profile-summary__avatar" aria-hidden="true" />
+            <div className={`user-profile-summary__avatar${user.avatarUrl ? " has-avatar" : ""}`} style={user.avatarUrl ? { backgroundImage: `url("${user.avatarUrl}")` } : undefined} aria-hidden="true" />
             <div className="user-profile-summary__identity">
               <h1>{user.name}</h1>
               <span>{user.handle}</span>
@@ -68,17 +83,19 @@ export default function UserProfilePage({
             className={`user-profile-summary__follow${isFollowing ? " is-following" : ""}`}
             type="button"
             aria-pressed={isFollowing}
+            disabled={!user.id || user.id === currentUserId}
             onClick={toggleFollow}
           >
             {isFollowing ? "フォロー中" : "フォローする"}
           </button>
+          {followError && <p role="alert">{followError}</p>}
         </section>
         <div className="user-profile-posts-tab" aria-current="page">投稿</div>
       </div>
 
       <main className="user-profile-content" aria-label={`${user.name}の投稿`}>
-        {posts.length ? (
-          <TimelineFeed posts={posts} />
+        {visiblePosts.length ? (
+          <TimelineFeed posts={visiblePosts} onLikeChange={onLikeChange} />
         ) : (
           <p className="user-profile-empty">ユーザーの投稿がこれ以上ありません。</p>
         )}

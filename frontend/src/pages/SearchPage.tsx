@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AppHeader from "../components/layout/AppHeader";
 import BottomNavigation, { type NavigationItem } from "../components/layout/BottomNavigation";
 import CreatePostButton from "../components/navigation/CreatePostButton";
 import TimelineFeed from "../features/timeline/components/TimelineFeed";
 import type { TimelinePost } from "../features/timeline/types";
-import { mockUsers } from "../features/profile/data/mockUsers";
+import { searchProfiles, toggleFollow } from "../features/profile/data/profileApi";
 import type { ProfileUser } from "../features/profile/types";
 
 type SearchTab = "topics" | "latest" | "users";
@@ -21,10 +21,12 @@ type SearchPageProps = {
   hasUnreadNotifications: boolean;
   showUnluckPosts: boolean;
   onCreatePost: () => void;
-  onOpenProfile: (user: ProfileUser) => void;
+  onOpenProfile: (handle: string) => void;
   onOpenMyProfile: () => void;
   posts: TimelinePost[];
   onLikeChange: (postId: string, liked: boolean) => Promise<void>;
+  currentUserId: string;
+  avatarUrl: string | null;
 };
 
 export default function SearchPage({
@@ -37,13 +39,27 @@ export default function SearchPage({
   onOpenMyProfile,
   posts,
   onLikeChange,
+  currentUserId,
+  avatarUrl,
 }: SearchPageProps) {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<SearchTab>("topics");
-  const [followingUsers, setFollowingUsers] = useState(
-    () => Object.fromEntries(mockUsers.map((user) => [user.handle, user.following])),
-  );
+  const [users, setUsers] = useState<ProfileUser[]>([]);
+  const [usersError, setUsersError] = useState("");
   const normalizedQuery = query.trim().toLocaleLowerCase();
+
+  useEffect(() => {
+    let cancelled = false;
+    void searchProfiles(query, currentUserId).then((result) => {
+      if (!cancelled) {
+        setUsers(result);
+        setUsersError("");
+      }
+    }).catch(() => {
+      if (!cancelled) setUsersError("ユーザーを読み込めませんでした。時間をおいて再度お試しください。");
+    });
+    return () => { cancelled = true; };
+  }, [currentUserId, query]);
 
   const matchingPosts = useMemo(() => {
     const filtered = posts.filter((post) =>
@@ -60,20 +76,22 @@ export default function SearchPage({
     return [...filtered].sort((first, second) => second.likes - first.likes);
   }, [activeTab, normalizedQuery, showUnluckPosts, posts]);
 
-  const matchingUsers = useMemo(() => {
-    return mockUsers.filter((user) =>
-      `${user.name} ${user.handle} ${user.bio}`.toLocaleLowerCase().includes(normalizedQuery),
-    );
-  }, [normalizedQuery]);
-
-  function toggleFollowing(handle: string) {
-    setFollowingUsers((users) => ({ ...users, [handle]: !users[handle] }));
+  async function toggleUserFollowing(user: ProfileUser) {
+    if (!user.id || user.id === currentUserId) return;
+    try {
+      await toggleFollow(currentUserId, user.id, user.following);
+      setUsers((current) => current.map((candidate) => candidate.id === user.id
+        ? { ...candidate, following: !candidate.following, followerCount: candidate.followerCount + (candidate.following ? -1 : 1) }
+        : candidate));
+    } catch {
+      setUsersError("フォロー状態を更新できませんでした。時間をおいて再度お試しください。");
+    }
   }
 
   return (
     <div className="app-shell">
       <div className="search-top">
-        <AppHeader showBottomLine={false} onMyProfileClick={onOpenMyProfile} />
+        <AppHeader showBottomLine={false} onMyProfileClick={onOpenMyProfile} avatarUrl={avatarUrl} />
         <form className="search-form" role="search" onSubmit={(event) => event.preventDefault()}>
           <span className="search-form__icon" aria-hidden="true" />
           <input
@@ -103,19 +121,20 @@ export default function SearchPage({
       <main className="search-content" aria-label="検索結果">
         {activeTab === "users" ? (
           <section className="search-user-list" aria-label="ユーザー">
-            {matchingUsers.map((user) => (
+            {users.map((user) => (
               <article className="search-user" key={user.handle}>
                 <button
-                  className="search-user__avatar search-user__avatar-button"
+                  className={`search-user__avatar search-user__avatar-button${user.avatarUrl ? " has-avatar" : ""}`}
                   type="button"
                   aria-label={`${user.name}のプロフィールを開く`}
-                  onClick={() => onOpenProfile(user)}
+                  style={user.avatarUrl ? { backgroundImage: `url("${user.avatarUrl}")` } : undefined}
+                  onClick={() => onOpenProfile(user.handle)}
                 />
                 <div className="search-user__identity">
                   <button
                     className="search-user__profile-open"
                     type="button"
-                    onClick={() => onOpenProfile(user)}
+                    onClick={() => onOpenProfile(user.handle)}
                     aria-label={`${user.name} ${user.handle}のプロフィールを開く`}
                   >
                     <strong>{user.name}</strong>
@@ -124,25 +143,23 @@ export default function SearchPage({
                   <p>{user.bio}</p>
                 </div>
                 <button
-                  className={`search-user__follow${followingUsers[user.handle] ? " is-following" : ""}`}
+                  className={`search-user__follow${user.following ? " is-following" : ""}`}
                   type="button"
-                  aria-pressed={followingUsers[user.handle]}
-                  onClick={() => toggleFollowing(user.handle)}
+                  aria-pressed={user.following}
+                  disabled={!user.id || user.id === currentUserId}
+                  onClick={() => void toggleUserFollowing(user)}
                 >
-                  {followingUsers[user.handle] ? "フォロー中" : "フォローする"}
+                  {user.id === currentUserId ? "自分" : user.following ? "フォロー中" : "フォローする"}
                 </button>
               </article>
             ))}
-            {matchingUsers.length === 0 && <p className="search-empty">ユーザーが見つかりません</p>}
+            {usersError ? <p className="search-empty" role="alert">{usersError}</p> : users.length === 0 && <p className="search-empty">ユーザーが見つかりません</p>}
           </section>
         ) : matchingPosts.length > 0 ? (
           <TimelineFeed
             posts={matchingPosts}
             onLikeChange={onLikeChange}
-            onOpenProfile={(handle) => {
-              const user = mockUsers.find((candidate) => candidate.handle === handle);
-              if (user) onOpenProfile(user);
-            }}
+            onOpenProfile={onOpenProfile}
           />
         ) : (
           <p className="search-empty">投稿が見つかりません</p>

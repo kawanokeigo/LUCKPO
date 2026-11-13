@@ -14,6 +14,7 @@ function formatLikes(count: number) {
 export default function PostCard({ post, onOpenProfile, onLikeChange }: PostCardProps) {
   const [liked, setLiked] = useState(post.liked ?? false);
   const [likeCount, setLikeCount] = useState(post.likes);
+  const [copyStatus, setCopyStatus] = useState<"copied" | "failed" | null>(null);
   const kindLabel = post.kind === "luck" ? "幸運" : "不幸";
 
   function toggleLike() {
@@ -28,13 +29,32 @@ export default function PostCard({ post, onOpenProfile, onLikeChange }: PostCard
     }
   }
 
-  function sharePost() {
-    if (navigator.share) {
-      void navigator.share({
-        title: "LUCKPO",
-        text: post.body,
-        url: window.location.href,
-      }).catch(() => undefined);
+  async function sharePost() {
+    const handle = post.handle.replace(/^@/, "");
+    const profileUrl = new URL(`/users/${encodeURIComponent(handle)}`, window.location.origin).toString();
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(profileUrl);
+      } else {
+        const field = document.createElement("textarea");
+        field.value = profileUrl;
+        field.setAttribute("readonly", "");
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        let copied = false;
+        try {
+          document.body.appendChild(field);
+          field.select();
+          copied = document.execCommand("copy");
+        } finally {
+          field.remove();
+        }
+        if (!copied) throw new Error("Clipboard copy failed.");
+      }
+      setCopyStatus("copied");
+    } catch {
+      setCopyStatus("failed");
     }
   }
 
@@ -43,13 +63,19 @@ export default function PostCard({ post, onOpenProfile, onLikeChange }: PostCard
       <div className="post-card__top">
         {onOpenProfile ? (
           <button
-            className="post-card__avatar post-card__avatar-button"
+            className={`post-card__avatar post-card__avatar-button${post.authorAvatarUrl ? " has-avatar" : ""}`}
             type="button"
+            style={post.authorAvatarUrl ? { backgroundImage: `url("${post.authorAvatarUrl}")` } : undefined}
             aria-label={`${post.authorName}のプロフィールを開く`}
             onClick={() => onOpenProfile(post.handle)}
           />
         ) : (
-          <div className="post-card__avatar" role="img" aria-label={`${post.authorName}のアイコン`} />
+          <div
+            className={`post-card__avatar${post.authorAvatarUrl ? " has-avatar" : ""}`}
+            style={post.authorAvatarUrl ? { backgroundImage: `url("${post.authorAvatarUrl}")` } : undefined}
+            role="img"
+            aria-label={`${post.authorName}のアイコン`}
+          />
         )}
         <div className="post-card__identity">
           {onOpenProfile ? (
@@ -107,11 +133,16 @@ export default function PostCard({ post, onOpenProfile, onLikeChange }: PostCard
           <button
             className="post-action post-action--share"
             type="button"
-            aria-label="投稿を共有"
+            aria-label="投稿者のプロフィールリンクをコピー"
             onClick={sharePost}
           >
             <span className="post-action__icon post-action__icon--share" aria-hidden="true" />
           </button>
+          {copyStatus && (
+            <span className="post-card__copy-status" role="status">
+              {copyStatus === "copied" ? "コピー完了" : "コピー失敗"}
+            </span>
+          )}
         </div>
       </footer>
     </article>

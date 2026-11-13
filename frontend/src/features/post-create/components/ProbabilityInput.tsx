@@ -126,6 +126,7 @@ export default function ProbabilityInput({ onProbabilityChange, initialValue }: 
                 inputMode="decimal"
                 min="0"
                 max="100"
+                step="any"
                 placeholder="20"
                 type="number"
                 value={probability}
@@ -157,6 +158,7 @@ export default function ProbabilityInput({ onProbabilityChange, initialValue }: 
                   inputMode="decimal"
                   min="0"
                   max="100"
+                  step="any"
                   type="number"
                   value={probability}
                   onChange={(event) => setProbability(event.target.value)}
@@ -206,6 +208,7 @@ export default function ProbabilityInput({ onProbabilityChange, initialValue }: 
                   inputMode="decimal"
                   min="0"
                   max="100"
+                  step="any"
                   type="number"
                   value={probability}
                   onChange={(event) => setProbability(event.target.value)}
@@ -233,6 +236,7 @@ export default function ProbabilityInput({ onProbabilityChange, initialValue }: 
                   inputMode="decimal"
                   min="0"
                   max="100"
+                  step="any"
                   type="number"
                   value={probability}
                   onChange={(event) => setProbability(event.target.value)}
@@ -244,6 +248,7 @@ export default function ProbabilityInput({ onProbabilityChange, initialValue }: 
                   inputMode="decimal"
                   min="0"
                   max="100"
+                  step="any"
                   type="number"
                   value={secondProbability}
                   onChange={(event) => setSecondProbability(event.target.value)}

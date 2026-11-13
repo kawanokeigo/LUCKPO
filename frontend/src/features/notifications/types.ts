@@ -4,4 +4,5 @@ export type NotificationItem = {
   postPreview: string;
   timestamp: string;
   dateLabel: string;
+  isRead?: boolean;
 };

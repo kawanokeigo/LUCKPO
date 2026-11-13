@@ -2315,11 +2315,14 @@ button.profile-avatar {
   color: var(--color-black);
   font: inherit;
   font-size: 16px;
+  line-height: 1.5;
 }
 
 .post-create-body::placeholder {
   color: var(--color-black);
   opacity: 0.45;
+  font: inherit;
+  line-height: inherit;
 }
 
 .probability-input__number:focus-visible,
@@ -2344,8 +2347,10 @@ button.profile-avatar {
   padding: 0 10px;
   border: 1px solid var(--color-gray);
   border-radius: 10px;
+  background: var(--color-white);
   color: var(--color-black);
   font-size: 14px;
+  font-family: inherit;
   cursor: pointer;
 }
 
@@ -2383,6 +2388,20 @@ button.profile-avatar {
   object-fit: contain;
 }
 
+.post-create-image__details {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(100%, 300px);
+}
+
+.post-create-image__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-black);
+  font-size: 12px;
+}
+
 .post-create-image__attachment button {
   flex: 0 0 auto;
   white-space: nowrap;
@@ -2393,6 +2412,12 @@ button.profile-avatar {
   font-size: 13px;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.post-create-error {
+  margin: 0;
+  color: #be3434;
+  font-size: 13px;
 }
 
 .visually-hidden {
@@ -2594,6 +2619,12 @@ button.profile-avatar {
   display: flex;
   align-items: center;
   gap: 28px;
+}
+
+.post-card__copy-status {
+  color: var(--color-black);
+  font-size: 12px;
+  line-height: 1.3;
 }
 
 .post-action {
@@ -2859,6 +2890,21 @@ button.profile-avatar {
 .fortune-result__probability { margin:2px 0 0; color:#6b5b3d; font-size:13px; font-weight:700; }
 @keyframes gacha-machine-tap { 0%,100% { transform:translateX(0) rotate(0); } 20% { transform:translateX(-3px) rotate(-.5deg); } 45% { transform:translateX(3px) rotate(.5deg); } 70% { transform:translateX(-1px) rotate(-.2deg); } }
 @media (prefers-reduced-motion:reduce) { .gacha-machine.is-drawing .gacha-machine__image { animation:none; } }
+.profile-setup-content { display:grid; min-height:calc(100dvh - var(--header-height)); padding:28px 20px 48px; place-items:center; background:var(--color-white); }
+.profile-setup-form { display:grid; width:min(100%, 420px); gap:16px; }
+.profile-setup-form h1 { margin:0; color:var(--color-icon-nomal); font-size:24px; text-align:center; }
+.profile-setup-form > p { margin:-8px 0 8px; color:var(--color-black); text-align:center; }
+.profile-setup-form label { display:grid; gap:7px; color:var(--color-black); font-weight:700; }
+.profile-setup-form input { width:100%; min-height:46px; padding:8px 12px; border:1px solid var(--color-yellow-line); border-radius:10px; background:#fffdf6; color:var(--color-black); font:inherit; font-weight:400; }
+.profile-setup-handle { display:flex; align-items:center; gap:7px; min-height:46px; padding-left:12px; border:1px solid var(--color-yellow-line); border-radius:10px; background:#fffdf6; color:#8e7d50; }
+.profile-setup-handle input { min-height:42px; padding-left:0; border:0; background:transparent; outline:none; }
+.profile-setup-form small { color:#766d5e; font-weight:400; }
+.profile-setup-form button { min-height:48px; border:0; border-radius:12px; background:var(--color-luck-button); color:#4b3c1b; font-size:16px; font-weight:700; }
+.profile-setup-form button:disabled { opacity:.6; }
+.profile-setup-error { margin:0!important; color:#be3434!important; font-size:14px; text-align:left!important; }
+.profile-setup-loading { display:grid; min-height:100dvh; place-items:center; color:var(--color-black); }
+.notification-item.is-unread { background:color-mix(in srgb, var(--color-yellow-line) 30%, var(--color-white)); }
+.notification-item.is-unread::before { position:absolute; top:15px; left:10px; width:8px; height:8px; border-radius:50%; background:var(--color-icon-nomal); content:""; }
 
 .signin-top .app-header { border-bottom:3px solid var(--color-yellow-line); }
 .signin-content {
@@ -2886,6 +2932,25 @@ button.profile-avatar {
   width:100%;
   height:auto;
 }
+.signin-actions { display:grid; width:min(100%, 540px); gap:16px; justify-items:center; }
+.signin-google { width:100%; }
+.signin-guest-group { display:grid; width:100%; gap:7px; }
+.signin-guest {
+  width:100%;
+  min-height:48px;
+  border:1px solid var(--color-yellow-bold-line);
+  border-radius:10px;
+  background:var(--color-white);
+  color:var(--color-black);
+  font:inherit;
+  font-weight:700;
+  cursor:pointer;
+}
+.signin-guest:focus-visible { outline:3px solid var(--color-icon-nomal); outline-offset:3px; }
+.signin-guest:disabled { opacity:.6; cursor:not-allowed; }
+.signin-guest-note, .signin-error { margin:0; font-size:13px; text-align:center; }
+.signin-guest-note { color:var(--color-black); opacity:.65; }
+.signin-error { color:#be3434; }
 .gacha-machine.is-spinning .gacha-machine__knob { animation:gacha-refresh-knob .55s ease-in-out 2 alternate; }
 .gacha-machine.is-spinning .gacha-machine__drop-capsule { animation:gacha-reference-fall .85s cubic-bezier(.2,.65,.35,1) .2s forwards; }
 .gacha-machine.has-result .gacha-machine__drop-capsule { top:194px; opacity:1; transform:translateX(-50%) scale(1); animation:gacha-reference-open .42s ease-out forwards; }
@@ -2898,3 +2963,108 @@ button.profile-avatar {
 @keyframes gacha-reference-open { from{transform:translateX(-50%) scale(1)} to{transform:translateX(-50%) scale(1)} }
 @keyframes gacha-half-up { to{transform:translateY(-34px) rotate(-14deg);opacity:0} }
 @keyframes gacha-half-down { to{transform:translateY(34px) rotate(14deg);opacity:0} }
+
+/* Default profile placeholder and first-run avatar picker */
+.search-user__avatar,
+.post-card__avatar,
+.user-profile-summary__avatar,
+.my-profile-avatar-edit__preview,
+.profile-setup-avatar {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-avatar-background);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.search-user__avatar::before,
+.post-card__avatar::before,
+.user-profile-summary__avatar::before,
+.my-profile-avatar-edit__preview::before,
+.profile-setup-avatar::before {
+  position: absolute;
+  inset: 11%;
+  background-color: var(--color-avatar-icon);
+  content: "";
+  mask-image: url("/images/humanIcon.svg");
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+
+.search-user__avatar.has-avatar::before,
+.post-card__avatar.has-avatar::before,
+.user-profile-summary__avatar.has-avatar::before,
+.my-profile-avatar-edit__preview.has-avatar::before,
+.profile-setup-avatar.has-avatar::before {
+  display: none;
+}
+
+.profile-setup-avatar {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto -6px;
+  border-radius: 50%;
+}
+
+.profile-setup-avatar-picker {
+  justify-self: center;
+  color: var(--color-icon-nomal) !important;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: underline;
+}
+
+.profile-setup-avatar-picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.profile-setup-avatar-picker:focus-within {
+  outline: 2px solid var(--color-yellow-bold-line);
+  outline-offset: 3px;
+}
+
+.profile-setup-avatar-help {
+  margin-top: -12px !important;
+  text-align: center;
+}
+.profile-avatar__image.has-avatar {
+  background-color: transparent;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  mask-image: none;
+}
+
+.app-shell--home .home-content {
+  background: var(--color-white);
+}
+
+/* Subtle press feedback for interactive controls */
+button {
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+  filter: brightness(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}
+
+.profile-page-shell {
+  background: var(--color-white);
+}
+.profile-page-shell .app-header--with-line {
+  height: calc(var(--header-height) + 3px);
+}

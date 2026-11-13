@@ -2,7 +2,7 @@ import AppHeader from "../components/layout/AppHeader";
 import BottomNavigation, { type NavigationItem } from "../components/layout/BottomNavigation";
 import CreatePostButton from "../components/navigation/CreatePostButton";
 import NotificationList from "../features/notifications/components/NotificationList";
-import { mockNotifications } from "../features/notifications/data/mockNotifications";
+import type { NotificationItem } from "../features/notifications/types";
 
 type NotificationsPageProps = {
   activeItem: NavigationItem;
@@ -10,6 +10,8 @@ type NotificationsPageProps = {
   hasUnreadNotifications: boolean;
   onCreatePost: () => void;
   onOpenMyProfile: () => void;
+  notifications: NotificationItem[];
+  avatarUrl: string | null;
 };
 
 export default function NotificationsPage({
@@ -18,15 +20,17 @@ export default function NotificationsPage({
   hasUnreadNotifications,
   onCreatePost,
   onOpenMyProfile,
+  notifications,
+  avatarUrl,
 }: NotificationsPageProps) {
   return (
     <div className="app-shell">
       <div className="notifications-top">
-        <AppHeader showBottomLine={false} onMyProfileClick={onOpenMyProfile} />
+        <AppHeader showBottomLine={false} onMyProfileClick={onOpenMyProfile} avatarUrl={avatarUrl} />
         <h1 className="notifications-title">通知</h1>
       </div>
       <main className="notifications-content" aria-label="通知">
-        <NotificationList notifications={mockNotifications} />
+        <NotificationList notifications={notifications} />
       </main>
       <CreatePostButton onClick={onCreatePost} />
       <BottomNavigation

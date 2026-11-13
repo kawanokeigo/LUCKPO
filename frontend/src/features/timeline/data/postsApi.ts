@@ -26,9 +26,11 @@ function toTimelinePost(row: PostRow, profile?: { handle: string; display_name: 
     : undefined;
   return {
     id: row.id,
+    authorId: row.user_id,
     kind: row.kind,
     authorName: profile?.display_name ?? "ユーザー",
     handle: `@${profile?.handle ?? "user"}`,
+    authorAvatarUrl: profile?.avatar_url ?? null,
     probability: row.probability,
     body: row.body,
     timestamp: row.created_at,
@@ -39,13 +41,15 @@ function toTimelinePost(row: PostRow, profile?: { handle: string; display_name: 
   };
 }
 
-export async function fetchPosts(currentUserId?: string): Promise<TimelinePost[]> {
+export async function fetchPosts(currentUserId?: string, authorId?: string): Promise<TimelinePost[]> {
   const client = requireSupabase();
-  const { data: rows, error } = await client
+  let query = client
     .from("posts")
     .select("id,user_id,kind,probability,body,image_path,created_at")
     .order("created_at", { ascending: false })
     .limit(100);
+  if (authorId) query = query.eq("user_id", authorId);
+  const { data: rows, error } = await query;
   if (error) throw error;
   if (!rows?.length) return [];
 

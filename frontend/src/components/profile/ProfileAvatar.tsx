@@ -1,9 +1,10 @@
 type ProfileAvatarProps = {
   onClick?: () => void;
+  avatarUrl?: string | null;
 };
 
-export default function ProfileAvatar({ onClick }: ProfileAvatarProps) {
-  const content = <span className="profile-avatar__image" aria-hidden="true" />;
+export default function ProfileAvatar({ onClick, avatarUrl }: ProfileAvatarProps) {
+  const content = <span className={`profile-avatar__image${avatarUrl ? " has-avatar" : ""}`} style={avatarUrl ? { backgroundImage: `url("${avatarUrl}")` } : undefined} aria-hidden="true" />;
 
   if (onClick) {
     return (

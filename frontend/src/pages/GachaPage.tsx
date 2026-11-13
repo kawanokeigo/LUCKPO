@@ -13,6 +13,7 @@ type GachaPageProps = {
   hasUnreadNotifications: boolean;
   onOpenMyProfile: () => void;
   onCreatePost: (prefill: PostCreatePrefill) => void;
+  avatarUrl: string | null;
 };
 
 export default function GachaPage({
@@ -21,6 +22,7 @@ export default function GachaPage({
   hasUnreadNotifications,
   onOpenMyProfile,
   onCreatePost,
+  avatarUrl,
 }: GachaPageProps) {
   const [fortune, setFortune] = useState<Fortune | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -47,7 +49,7 @@ export default function GachaPage({
   return (
     <div className="app-shell">
       <div className="gacha-top">
-        <AppHeader showBottomLine={false} onMyProfileClick={onOpenMyProfile} />
+        <AppHeader showBottomLine={false} onMyProfileClick={onOpenMyProfile} avatarUrl={avatarUrl} />
         <h1 className="gacha-title">ガチャ</h1>
       </div>
       <main className={`gacha-content${fortune ? " has-result" : ""}`} aria-label="運勢ガチャ">
